@@ -3,10 +3,15 @@
 
 Features:
 [1] File Manager
+
 [2] Reverse Connect
+
 [3] Server Information
+
 [4] Trap Login + Special Ip Access
+
 [5] Polymorphic
+
 [6] Bypass Feature
 
 galaushell-3
